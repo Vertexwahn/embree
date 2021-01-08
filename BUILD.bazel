@@ -277,8 +277,8 @@ cc_library(
     defines = common_defines,
     includes = [
         "include",
-        "kernels/bvh",
         "kernels",
+        "kernels/bvh",
     ],
     visibility = ["//visibility:public"],
     deps = [
@@ -294,16 +294,19 @@ cc_library(
 cc_library(
     name = "embree_sse42",
     srcs = [
-        "kernels/geometry/instance_intersector.cpp",
-        "kernels/geometry/curve_intersector_virtual.cpp",
-        "kernels/geometry/curve_intersector_virtual2.cpp",
-        "kernels/bvh/bvh_intersector1_bvh4.cpp",
-        "kernels/common/scene_subdiv_mesh.cpp",
-        "kernels/geometry/grid_soa.cpp",
-        "kernels/subdiv/subdivpatch1base_eval.cpp",
+        "kernels/bvh/bvh_intersector_hybrid.cpp",
+        "kernels/bvh/bvh_intersector1.cpp",
         "kernels/bvh/bvh_intersector_hybrid4_bvh4.cpp",
         "kernels/bvh/bvh_intersector_stream_bvh4.cpp",
         "kernels/bvh/bvh_intersector_stream_filters.cpp",
+        "kernels/bvh/bvh_intersector_stream.cpp",
+        "kernels/bvh/bvh_intersector1_bvh4.cpp",
+        "kernels/common/scene_subdiv_mesh.cpp",
+        "kernels/geometry/curve_intersector_virtual.cpp",
+        "kernels/geometry/curve_intersector_virtual2.cpp",
+        "kernels/geometry/grid_soa.cpp",
+        "kernels/geometry/instance_intersector.cpp",
+        "kernels/subdiv/subdivpatch1base_eval.cpp",
     ] + glob(
         ["kernels/**/*.h"],
         exclude = [],
@@ -323,8 +326,8 @@ cc_library(
     ],
     includes = [
         "include",
-        "kernels/bvh",
         "kernels",
+        "kernels/bvh",
     ],
     visibility = ["//visibility:public"],
     deps = [
@@ -395,8 +398,8 @@ cc_library(
     ],
     includes = [
         "include",
-        "kernels/bvh",
         "kernels",
+        "kernels/bvh",
     ],
     visibility = ["//visibility:public"],
     deps = [
