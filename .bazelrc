@@ -13,3 +13,4 @@
 # limitations under the License.
 
 build --symlink_prefix=/ # Out of source build
+build --enable_runfiles # https://github.com/bazelbuild/bazel/issues/8843
