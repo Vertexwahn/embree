@@ -17,15 +17,17 @@ package(
     default_visibility = ["//visibility:public"],
 )
 
+config_setting(
+    name = "windows_x86_64",
+    values = {"cpu": "x64_windows"},
+    visibility = ["//visibility:public"],
+)
+
 common_defines = [
     "__SSE__",
     "__SSE2__",
-    "EMBREE_LOWEST_ISA",
     "TASKING_INTERNAL",
     "EMBREE_TARGET_SSE2",
-    "EMBREE_TARGET_SSE42",
-    "EMBREE_TARGET_AVX",
-    "EMBREE_TARGET_AVX2",
 ]
 
 cc_library(
@@ -131,6 +133,13 @@ cc_library(
         "common/sys/vector.h",
     ],
     defines = common_defines,
+    linkopts = select({
+        ":windows_x86_64": [
+            "-DEFAULTLIB:advapi32.lib",
+        ],
+        "//conditions:default": [
+        ],
+    }),
     deps = [
         ":math",
         ":simd",
@@ -222,6 +231,9 @@ cc_library(
         "kernels/bvh/bvh_builder_sah_spatial.cpp",
         "kernels/bvh/bvh_builder_twolevel.cpp",
         "kernels/bvh/bvh_collider.cpp",
+        "kernels/bvh/bvh_intersector_hybrid4_bvh4.cpp",
+        "kernels/bvh/bvh_intersector_stream_bvh4.cpp",
+        "kernels/bvh/bvh_intersector_stream_filters.cpp",
         "kernels/bvh/bvh_intersector1_bvh4.cpp",
         "kernels/bvh/bvh_refit.cpp",
         "kernels/bvh/bvh_rotate.cpp",
@@ -252,7 +264,6 @@ cc_library(
         "kernels/subdiv/bezier_curve.cpp",
         "kernels/subdiv/bspline_curve.cpp",
         "kernels/subdiv/catmullrom_curve.cpp",
-        "kernels/bvh/bvh_intersector1.cpp",
     ] + glob(["kernels/**/*.h"]),
     hdrs = [
         "include/embree3/rtcore.h",
@@ -274,7 +285,7 @@ cc_library(
         "include/embree3/rtcore_scene.h",
         "include/embree3/rtcore_scene.isph",
     ],
-    defines = common_defines,
+    defines = common_defines + ["EMBREE_LOWEST_ISA"],
     includes = [
         "include",
         "kernels",
@@ -284,194 +295,194 @@ cc_library(
     deps = [
         ":algorithms",
         #":embree_avx2",
-        ":embree_sse42",
+        #":embree_sse42",
         ":kernels_config",
         ":kernels_hash",
         ":lexers",
     ],
 )
 
-cc_library(
-    name = "embree_sse42",
-    srcs = [
-        "kernels/bvh/bvh_intersector_hybrid.cpp",
-        "kernels/bvh/bvh_intersector1.cpp",
-        "kernels/bvh/bvh_intersector_hybrid4_bvh4.cpp",
-        "kernels/bvh/bvh_intersector_stream_bvh4.cpp",
-        "kernels/bvh/bvh_intersector_stream_filters.cpp",
-        "kernels/bvh/bvh_intersector_stream.cpp",
-        "kernels/bvh/bvh_intersector1_bvh4.cpp",
-        "kernels/common/scene_subdiv_mesh.cpp",
-        "kernels/geometry/curve_intersector_virtual.cpp",
-        "kernels/geometry/curve_intersector_virtual2.cpp",
-        "kernels/geometry/grid_soa.cpp",
-        "kernels/geometry/instance_intersector.cpp",
-        "kernels/subdiv/subdivpatch1base_eval.cpp",
-    ] + glob(
-        ["kernels/**/*.h"],
-        exclude = [],
-    ),
-    defines = [
-        "__SSE__",
-        "__SSE2__",
-        "__SSE3__",
-        "__SSSE3__",
-        "__SSE4_1__",
-        "__SSE4_2__",
-        "TASKING_INTERNAL",
-        "EMBREE_TARGET_SSE2",
-        "EMBREE_TARGET_SSE42",
-        "EMBREE_TARGET_AVX",
-        "EMBREE_TARGET_AVX2",
-    ],
-    includes = [
-        "include",
-        "kernels",
-        "kernels/bvh",
-    ],
-    visibility = ["//visibility:public"],
-    deps = [
-        ":algorithms",
-        ":kernels_config",
-        ":lexers",
-    ],
-)
+#cc_library(
+#    name = "embree_sse42",
+#    srcs = [
+#        "kernels/bvh/bvh_intersector_hybrid.cpp",
+#        "kernels/bvh/bvh_intersector1.cpp",
+#        "kernels/bvh/bvh_intersector_hybrid4_bvh4.cpp",
+#        "kernels/bvh/bvh_intersector_stream_bvh4.cpp",
+#        "kernels/bvh/bvh_intersector_stream_filters.cpp",
+#        "kernels/bvh/bvh_intersector_stream.cpp",
+#        "kernels/bvh/bvh_intersector1_bvh4.cpp",
+#        "kernels/common/scene_subdiv_mesh.cpp",
+#        "kernels/geometry/curve_intersector_virtual.cpp",
+#        "kernels/geometry/curve_intersector_virtual2.cpp",
+#        "kernels/geometry/grid_soa.cpp",
+#        "kernels/geometry/instance_intersector.cpp",
+#        "kernels/subdiv/subdivpatch1base_eval.cpp",
+#    ] + glob(
+#        ["kernels/**/*.h"],
+#        exclude = [],
+#    ),
+#    defines = [
+#        "__SSE__",
+#        "__SSE2__",
+#        "__SSE3__",
+#        "__SSSE3__",
+#        "__SSE4_1__",
+#        "__SSE4_2__",
+#        "TASKING_INTERNAL",
+#        "EMBREE_TARGET_SSE2",
+#        "EMBREE_TARGET_SSE42",
+#        "EMBREE_TARGET_AVX",
+#        "EMBREE_TARGET_AVX2",
+#    ],
+#    includes = [
+#        "include",
+#        "kernels",
+#        "kernels/bvh",
+#    ],
+#    visibility = ["//visibility:public"],
+#    deps = [
+#        ":algorithms",
+#        ":kernels_config",
+#        ":lexers",
+#    ],
+#)
 
-cc_library(
-    name = "embree_avx",
-    srcs = [
-        "kernels/geometry/instance_intersector.cpp",
-        "kernels/geometry/curve_intersector_virtual.cpp",
-        "kernels/geometry/curve_intersector_virtual2.cpp",
-        "kernels/bvh/bvh_intersector1_bvh4.cpp",
-        "kernels/geometry/primitive8.cpp",
-        "kernels/common/scene_user_geometry.cpp",
-        "kernels/common/scene_instance.cpp",
-        "kernels/common/scene_triangle_mesh.cpp",
-        "kernels/common/scene_quad_mesh.cpp",
-        "kernels/common/scene_curves.cpp",
-        "kernels/common/scene_line_segments.cpp",
-        "kernels/common/scene_grid_mesh.cpp",
-        "kernels/common/scene_points.cpp",
-        "kernels/bvh/bvh_collider.cpp",
-        "kernels/bvh/bvh_refit.cpp",
-        "kernels/bvh/bvh_builder.cpp",
-        "kernels/bvh/bvh_builder_hair.cpp",
-        "kernels/bvh/bvh_builder_hair_mb.cpp",
-        "kernels/bvh/bvh_builder_sah.cpp",
-        "kernels/bvh/bvh_builder_sah_spatial.cpp",
-        "kernels/bvh/bvh_builder_sah_mb.cpp",
-        "kernels/bvh/bvh_builder_twolevel.cpp",
-        "kernels/bvh/bvh_builder_subdiv.cpp",
-        "kernels/bvh/bvh_builder_morton.cpp",
-        "kernels/bvh/bvh_rotate.cpp",
-        "kernels/builders/primrefgen.cpp",
-        "kernels/bvh/bvh_intersector1_bvh8.cpp",
-        "kernels/bvh/bvh.cpp",
-        "kernels/bvh/bvh_statistics.cpp",
-        "kernels/common/scene_subdiv_mesh.cpp",
-        "kernels/geometry/grid_soa.cpp",
-        "kernels/subdiv/subdivpatch1base_eval.cpp",
-        "kernels/bvh/bvh_intersector_hybrid4_bvh4.cpp",
-        "kernels/bvh/bvh_intersector_stream_bvh4.cpp",
-        "kernels/bvh/bvh_intersector_stream_filters.cpp",
-        "kernels/bvh/bvh_intersector_hybrid8_bvh4.cpp",
-        "kernels/bvh/bvh_intersector_hybrid4_bvh8.cpp",
-        "kernels/bvh/bvh_intersector_hybrid8_bvh8.cpp",
-        "kernels/bvh/bvh_intersector_stream_bvh8.cpp",
-    ] + glob(
-        ["kernels/**/*.h"],
-        exclude = [],
-    ),
-    defines = [
-        "__SSE__",
-        "__SSE2__",
-        "__SSE3__",
-        "__SSSE3__",
-        "__SSE4_1__",
-        "__SSE4_2__",
-        "TASKING_INTERNAL",
-        "EMBREE_TARGET_SSE2",
-        "EMBREE_TARGET_SSE42",
-        "EMBREE_TARGET_AVX",
-        "EMBREE_TARGET_AVX2",
-    ],
-    includes = [
-        "include",
-        "kernels",
-        "kernels/bvh",
-    ],
-    visibility = ["//visibility:public"],
-    deps = [
-        ":algorithms",
-        ":kernels_config",
-        ":lexers",
-    ],
-)
+#cc_library(
+#    name = "embree_avx",
+#    srcs = [
+#        "kernels/geometry/instance_intersector.cpp",
+#        "kernels/geometry/curve_intersector_virtual.cpp",
+#        "kernels/geometry/curve_intersector_virtual2.cpp",
+#        "kernels/bvh/bvh_intersector1_bvh4.cpp",
+#        "kernels/geometry/primitive8.cpp",
+#        "kernels/common/scene_user_geometry.cpp",
+#        "kernels/common/scene_instance.cpp",
+#        "kernels/common/scene_triangle_mesh.cpp",
+#        "kernels/common/scene_quad_mesh.cpp",
+#        "kernels/common/scene_curves.cpp",
+#        "kernels/common/scene_line_segments.cpp",
+#        "kernels/common/scene_grid_mesh.cpp",
+#        "kernels/common/scene_points.cpp",
+#        "kernels/bvh/bvh_collider.cpp",
+#        "kernels/bvh/bvh_refit.cpp",
+#        "kernels/bvh/bvh_builder.cpp",
+#        "kernels/bvh/bvh_builder_hair.cpp",
+#        "kernels/bvh/bvh_builder_hair_mb.cpp",
+#        "kernels/bvh/bvh_builder_sah.cpp",
+#        "kernels/bvh/bvh_builder_sah_spatial.cpp",
+#        "kernels/bvh/bvh_builder_sah_mb.cpp",
+#        "kernels/bvh/bvh_builder_twolevel.cpp",
+#        "kernels/bvh/bvh_builder_subdiv.cpp",
+#        "kernels/bvh/bvh_builder_morton.cpp",
+#        "kernels/bvh/bvh_rotate.cpp",
+#        "kernels/builders/primrefgen.cpp",
+#        "kernels/bvh/bvh_intersector1_bvh8.cpp",
+#        "kernels/bvh/bvh.cpp",
+#        "kernels/bvh/bvh_statistics.cpp",
+#        "kernels/common/scene_subdiv_mesh.cpp",
+#        "kernels/geometry/grid_soa.cpp",
+#        "kernels/subdiv/subdivpatch1base_eval.cpp",
+#        "kernels/bvh/bvh_intersector_hybrid4_bvh4.cpp",
+#        "kernels/bvh/bvh_intersector_stream_bvh4.cpp",
+#        "kernels/bvh/bvh_intersector_stream_filters.cpp",
+#        "kernels/bvh/bvh_intersector_hybrid8_bvh4.cpp",
+#        "kernels/bvh/bvh_intersector_hybrid4_bvh8.cpp",
+#        "kernels/bvh/bvh_intersector_hybrid8_bvh8.cpp",
+#        "kernels/bvh/bvh_intersector_stream_bvh8.cpp",
+#    ] + glob(
+#        ["kernels/**/*.h"],
+#        exclude = [],
+#    ),
+#    defines = [
+#        "__SSE__",
+#        "__SSE2__",
+#        "__SSE3__",
+#        "__SSSE3__",
+#        "__SSE4_1__",
+#        "__SSE4_2__",
+#        "TASKING_INTERNAL",
+#        "EMBREE_TARGET_SSE2",
+#        "EMBREE_TARGET_SSE42",
+#        "EMBREE_TARGET_AVX",
+#        "EMBREE_TARGET_AVX2",
+#    ],
+#    includes = [
+#        "include",
+#        "kernels",
+#        "kernels/bvh",
+#    ],
+#    visibility = ["//visibility:public"],
+#    deps = [
+#        ":algorithms",
+#        ":kernels_config",
+#        ":lexers",
+#    ],
+#)
 
-cc_library(
-    name = "embree_avx2",
-    srcs = [
-        "kernels/builders/primrefgen.cpp",
-        "kernels/bvh/bvh_builder_hair_mb.cpp",
-        "kernels/bvh/bvh_builder_hair.cpp",
-        "kernels/bvh/bvh_builder_morton.cpp",
-        "kernels/bvh/bvh_builder_sah_mb.cpp",
-        "kernels/bvh/bvh_builder_sah_spatial.cpp",
-        "kernels/bvh/bvh_builder_sah.cpp",
-        "kernels/bvh/bvh_builder_subdiv.cpp",
-        "kernels/bvh/bvh_builder_twolevel.cpp",
-        "kernels/bvh/bvh_builder.cpp",
-        "kernels/bvh/bvh_collider.cpp",
-        "kernels/bvh/bvh_intersector_hybrid4_bvh4.cpp",
-        "kernels/bvh/bvh_intersector_hybrid4_bvh8.cpp",
-        "kernels/bvh/bvh_intersector_hybrid8_bvh4.cpp",
-        "kernels/bvh/bvh_intersector_hybrid8_bvh8.cpp",
-        "kernels/bvh/bvh_intersector_stream_bvh4.cpp",
-        "kernels/bvh/bvh_intersector_stream_bvh8.cpp",
-        "kernels/bvh/bvh_intersector_stream_filters.cpp",
-        "kernels/bvh/bvh_intersector1_bvh4.cpp",
-        "kernels/bvh/bvh_intersector1_bvh8.cpp",
-        "kernels/bvh/bvh_refit.cpp",
-        "kernels/bvh/bvh_rotate.cpp",
-        "kernels/common/scene_curves.cpp",
-        "kernels/common/scene_grid_mesh.cpp",
-        "kernels/common/scene_instance.cpp",
-        "kernels/common/scene_line_segments.cpp",
-        "kernels/common/scene_points.cpp",
-        "kernels/common/scene_quad_mesh.cpp",
-        "kernels/common/scene_subdiv_mesh.cpp",
-        "kernels/common/scene_triangle_mesh.cpp",
-        "kernels/common/scene_user_geometry.cpp",
-        "kernels/geometry/curve_intersector_virtual.cpp",
-        "kernels/geometry/curve_intersector_virtual2.cpp",
-        "kernels/geometry/grid_soa.cpp",
-        "kernels/geometry/instance_intersector.cpp",
-        "kernels/subdiv/subdivpatch1base_eval.cpp",
-    ] + glob(["kernels/**/*.h"]),
-    defines = [
-        "__SSE__",
-        "__SSE2__",
-        "__SSE3__",
-        "__SSSE3__",
-        "__SSE4_1__",
-        "__SSE4_2__",
-        "TASKING_INTERNAL",
-        "EMBREE_TARGET_SSE2",
-        "EMBREE_TARGET_SSE42",
-        "EMBREE_TARGET_AVX",
-        "EMBREE_TARGET_AVX2",
-    ],
-    includes = [
-        "include",
-        "kernels/bvh",
-    ],
-    visibility = ["//visibility:public"],
-    deps = [
-        ":algorithms",
-        ":lexers",
-    ],
-)
+#cc_library(
+#    name = "embree_avx2",
+#    srcs = [
+#        "kernels/builders/primrefgen.cpp",
+#        "kernels/bvh/bvh_builder_hair_mb.cpp",
+#        "kernels/bvh/bvh_builder_hair.cpp",
+#        "kernels/bvh/bvh_builder_morton.cpp",
+#        "kernels/bvh/bvh_builder_sah_mb.cpp",
+#        "kernels/bvh/bvh_builder_sah_spatial.cpp",
+#        "kernels/bvh/bvh_builder_sah.cpp",
+#        "kernels/bvh/bvh_builder_subdiv.cpp",
+#        "kernels/bvh/bvh_builder_twolevel.cpp",
+#        "kernels/bvh/bvh_builder.cpp",
+#        "kernels/bvh/bvh_collider.cpp",
+#        "kernels/bvh/bvh_intersector_hybrid4_bvh4.cpp",
+#        "kernels/bvh/bvh_intersector_hybrid4_bvh8.cpp",
+#        "kernels/bvh/bvh_intersector_hybrid8_bvh4.cpp",
+#        "kernels/bvh/bvh_intersector_hybrid8_bvh8.cpp",
+#        "kernels/bvh/bvh_intersector_stream_bvh4.cpp",
+#        "kernels/bvh/bvh_intersector_stream_bvh8.cpp",
+#        "kernels/bvh/bvh_intersector_stream_filters.cpp",
+#        "kernels/bvh/bvh_intersector1_bvh4.cpp",
+#        "kernels/bvh/bvh_intersector1_bvh8.cpp",
+#        "kernels/bvh/bvh_refit.cpp",
+#        "kernels/bvh/bvh_rotate.cpp",
+#        "kernels/common/scene_curves.cpp",
+#        "kernels/common/scene_grid_mesh.cpp",
+#        "kernels/common/scene_instance.cpp",
+#        "kernels/common/scene_line_segments.cpp",
+#        "kernels/common/scene_points.cpp",
+#        "kernels/common/scene_quad_mesh.cpp",
+#        "kernels/common/scene_subdiv_mesh.cpp",
+#        "kernels/common/scene_triangle_mesh.cpp",
+#        "kernels/common/scene_user_geometry.cpp",
+#        "kernels/geometry/curve_intersector_virtual.cpp",
+#        "kernels/geometry/curve_intersector_virtual2.cpp",
+#        "kernels/geometry/grid_soa.cpp",
+#        "kernels/geometry/instance_intersector.cpp",
+#        "kernels/subdiv/subdivpatch1base_eval.cpp",
+#    ] + glob(["kernels/**/*.h"]),
+#    defines = [
+#        "__SSE__",
+#        "__SSE2__",
+#        "__SSE3__",
+#        "__SSSE3__",
+#        "__SSE4_1__",
+#        "__SSE4_2__",
+#        "TASKING_INTERNAL",
+#        "EMBREE_TARGET_SSE2",
+#        "EMBREE_TARGET_SSE42",
+#        "EMBREE_TARGET_AVX",
+#        "EMBREE_TARGET_AVX2",
+#    ],
+#    includes = [
+#        "include",
+#        "kernels/bvh",
+#    ],
+#    visibility = ["//visibility:public"],
+#    deps = [
+#        ":algorithms",
+#        ":lexers",
+#    ],
+#)
 
 cc_binary(
     name = "testbed",
@@ -553,7 +564,7 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
-# generate "include/embree3/rtcore_config.h"
+# generate "embree/kernels/config.h"
 
 KRENEL_CONFIG_H = """
 // Copyright 2009-2020 Intel Corporation
@@ -563,16 +574,16 @@ KRENEL_CONFIG_H = """
 /* #undef EMBREE_STAT_COUNTERS */
 /* #undef EMBREE_BACKFACE_CULLING */
 /* #undef EMBREE_BACKFACE_CULLING_CURVES */
-#define EMBREE_FILTER_FUNCTION
+/* #undef EMBREE_FILTER_FUNCTION */
 /* #undef EMBREE_IGNORE_INVALID_RAYS */
 #define EMBREE_GEOMETRY_TRIANGLE
-#define EMBREE_GEOMETRY_QUAD
-#define EMBREE_GEOMETRY_CURVE
-#define EMBREE_GEOMETRY_SUBDIVISION
-#define EMBREE_GEOMETRY_USER
-#define EMBREE_GEOMETRY_INSTANCE
-#define EMBREE_GEOMETRY_GRID
-#define EMBREE_GEOMETRY_POINT
+/* #undef EMBREE_GEOMETRY_QUAD */
+/* #undef EMBREE_GEOMETRY_CURVE */
+/* #undef EMBREE_GEOMETRY_SUBDIVISION */
+/* #undef EMBREE_GEOMETRY_USER */
+/* #undef EMBREE_GEOMETRY_INSTANCE */
+/* #undef EMBREE_GEOMETRY_GRID */
+/* #undef EMBREE_GEOMETRY_POINT */
 #define EMBREE_RAY_PACKETS
 /* #undef EMBREE_COMPACT_POLYS */
 
@@ -646,6 +657,8 @@ cc_library(
     hdrs = ["//:kernels/config.h"],
     visibility = ["//visibility:public"],
 )
+
+# generate "embree/kernels/hash.h"
 
 KERNELS_HASH_H = """
 // Copyright 2009-2020 Intel Corporation
